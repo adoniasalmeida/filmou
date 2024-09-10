@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filmou - Busca por Streaming de Filmes e Séries</title>
+    <!-- Favicon -->
+    <link rel="icon" href="assets/img/favicon.png" type="image/png">
+    <!-- Importar Bulma CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Estilos personalizados */
+        body {
+            background-color: #f5f5f5;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #fff;
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .hero.is-primary {
+            background-color: rgba(0, 0, 0, 0.7); /* Fundo semi-transparente */
+        }
+
+        .hero-body .logo img {
+            max-width: 400px; /* Ajuste a largura conforme necessário */
+            margin: 0 auto;
+            display: block;
+        }
+
+        .hero-body .subtitle {
+            font-size: 1.5rem;
+            color: #ffdd57; /* Cor do subtítulo */
+            text-align: center;
+        }
+
+        .results {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .results .box {
+            margin-bottom: 30px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 5px;
+            overflow: hidden;
+            color: #fff;
+        }
+
+        .results .box .media {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+        }
+
+        .results .box .media-left {
+            flex-shrink: 0;
+            margin-right: 15px;
+            position: relative;
+        }
+
+        .results .box .media-left .image {
+            position: relative;
+            width: 200px;
+            height: 300px;
+        }
+
+        .results .box .media-left .image img {
+            width: 100%;
+            height: 100%;
+            border-radius: 5px;
+        }
+
+        .results .box .media-left .image .play-icon,
+        .results .box .media-left .image .trailer-icon {
+            position: absolute;
+            font-size: 1rem;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s, color 0.3s;
+        }
+
+        .results .box .media-left .image .play-icon {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(1);
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 50%;
+            padding: 15px;
+            font-size: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .results .box .media-left .image .play-icon:hover {
+            background-color: rgba(0, 0, 0, 0.9);
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+
+        .results .box .media-left .image .play-icon svg {
+            fill: #fff;
+        }
+
+        .results .box .media-left .image .play-icon:hover svg {
+            fill: #ffdd57;
+        }
+
+        .results .box .media-left .image .trailer-icon {
+            bottom: 10px;
+            right: 10px;
+            font-size: 1rem;
+            color: #eb0000;
+        }
+
+        .results .box .media-left .image .trailer-icon:hover {
+            color: #fff;
+        }
+
+        .results .box .media-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .results .box .media-content .title {
+            font-size: 2rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            color: #ffdd57;
+            text-align: center;
+        }
+
+        .results .box .media-content .info {
+            font-size: 1rem;
+            color: #ddd;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .results .box .media-content .description {
+            font-size: 1rem;
+            color: #eee;
+            max-height: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: max-height 0.3s ease;
+        }
+
+        .results .box .media-content .description.expanded {
+            max-height: none;
+        }
+
+        .results .box .media-content .expand-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #ffdd57;
+            margin-top: 10px;
+            font-size: 1.5rem;
+        }
+
+        .results .box .media-content .expand-toggle .fa-chevron-down,
+        .results .box .media-content .expand-toggle .fa-chevron-up {
+            display: none;
+        }
+
+        .results .box .media-content .description:not(.expanded) + .expand-toggle .fa-chevron-down {
+            display: block;
+        }
+
+        .results .box .media-content .description.expanded + .expand-toggle .fa-chevron-up {
+            display: block;
+        }
+
+        footer {
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            text-align: center;
+            color: #fff;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+
+        footer .social-icons {
+            margin: 5px 0;
+        }
+
+        footer .social-icons a {
+            color: #fff;
+            margin: 0 10px;
+            font-size: 1.2rem;
+            text-decoration: none;
+        }
+
+        /* Estilos para a cor da fonte do menu dropdown */
+        .navbar-dropdown {
+            background-color: #333;
+        }
+
+        .navbar-dropdown .navbar-item {
+            color: #fff;
+        }
+
+        .navbar-dropdown .navbar-item:hover,
+        .navbar-dropdown .navbar-item.is-active {
+            background-color: #00d1b2;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <section class="hero is-fullheight is-primary">
+        <div class="hero-body">
+            <div class="container has-text-centered">
+                <div class="logo">
+                    <img src="assets/img/logo.png" alt="Filmou">
+                </div>
+                <h2 class="subtitle">O QUE VOCÊ QUER ASSISTIR HOJE?</h2>
+                <form id="search-form">
+                    <div class="field has-addons">
+                        <div class="control is-expanded">
+                            <input class="input is-large" id="search-input" type="text" placeholder="Digite para pesquisar..." />
+                        </div>
+                        <div class="control">
+                            <button class="button is-large is-danger" type="button" id="clear-button">
+                                Limpar
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                <nav class="navbar is-primary">
+                    <div class="navbar-menu">
+                        <div class="navbar-start">
+                            <div class="navbar-item has-dropdown is-hoverable" id="movies-menu">
+                                <a class="navbar-link">
+                                    Filmes
+                                </a>
+                                <div class="navbar-dropdown">
+                                    <a class="navbar-item" data-category="popular" data-type="movie">Populares</a>
+                                    <a class="navbar-item" data-category="now_playing" data-type="movie">Em Cartaz</a>
+                                    <a class="navbar-item" data-category="upcoming" data-type="movie">Próxima Estreia</a>
+                                </div>
+                            </div>
+                            <div class="navbar-item has-dropdown is-hoverable" id="series-menu">
+                                <a class="navbar-link">
+                                    Séries
+                                </a>
+                                <div class="navbar-dropdown">
+                                    <a class="navbar-item" data-category="popular" data-type="tv">Populares</a>
+                                    <a class="navbar-item" data-category="airing_today" data-type="tv">Em Exibição Hoje</a>
+                                    <a class="navbar-item" data-category="on_the_air" data-type="tv">Na TV</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+                <div id="results" class="results mt-5"></div>
+            </div>
+        </div>
+    </section>
+    <footer>
+        <p>Feito por Adonias Almeida</p>
+        <div class="social-icons">
+            <a href="https://twitter.com/adonias" target="_blank" title="Twitter"><i class="fab fa-facebook"></i></a>
+            <a href="https://linkedin.com/in/adonias" target="_blank" title="LinkedIn"><i class="fab fa-instagram"></i></a>
+        </div>
+    </footer>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const API_KEY = '0875f328e3fa25a394f9ad98ff1eaac2';
+            const BASE_URL = 'https://api.themoviedb.org/3/';
+            const searchInput = document.getElementById('search-input');
+            const resultsDiv = document.getElementById('results');
+            const moviesMenu = document.getElementById('movies-menu');
+            const seriesMenu = document.getElementById('series-menu');
+            const clearButton = document.getElementById('clear-button');
+
+            // Função para buscar resultados e exibi-los
+            async function fetchAndDisplayResults(type, category) {
+                try {
+                    const response = await fetch(`${BASE_URL}${type}/${category}?api_key=${API_KEY}&language=pt-BR`);
+                    const data = await response.json();
+                    displayResults(data.results, type);
+                } catch (error) {
+                    console.error('Erro ao buscar dados:', error);
+                }
+            }
+
+            // Função para buscar filmes populares para o fundo
+            async function fetchPopularMovies() {
+                try {
+                    const response = await fetch(`${BASE_URL}movie/popular?api_key=${API_KEY}&language=pt-BR`);
+                    const data = await response.json();
+                    return data.results.slice(0, 10); // Obter os 10 filmes populares
+                } catch (error) {
+                    console.error('Erro ao buscar filmes populares:', error);
+                    return [];
+                }
+            }
+
+            function setBackgroundImage(movies) {
+                if (movies.length > 0) {
+                    const randomMovie = movies[Math.floor(Math.random() * movies.length)];
+                    document.body.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${randomMovie.backdrop_path})`;
+                }
+            }
+
+            // Buscar e definir a imagem de fundo
+            const popularMovies = await fetchPopularMovies();
+            setBackgroundImage(popularMovies);
+
+            searchInput.addEventListener('input', async () => {
+                const query = searchInput.value;
+                if (query) {
+                    try {
+                        const response = await fetch(`${BASE_URL}search/movie?api_key=${API_KEY}&language=pt-BR&query=${encodeURIComponent(query)}`);
+                        const data = await response.json();
+                        displayResults(data.results, 'movie');
+                    } catch (error) {
+                        console.error('Erro ao buscar filmes:', error);
+                    }
+                } else {
+                    resultsDiv.innerHTML = '';
+                }
+            });
+
+            clearButton.addEventListener('click', () => {
+                searchInput.value = '';
+                resultsDiv.innerHTML = '';
+            });
+
+            // Função para formatar a data
+            function formatDate(dateString) {
+                const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+                const date = new Date(dateString);
+                return date.toLocaleDateString('pt-BR', options);
+            }
+
+            // Função para buscar vídeos (trailers)
+            async function fetchTrailers(id, type) {
+                try {
+                    const response = await fetch(`${BASE_URL}${type}/${id}/videos?api_key=${API_KEY}&language=pt-BR`);
+                    const data = await response.json();
+                    return data.results.find(video => video.type === 'Trailer') || null;
+                } catch (error) {
+                    console.error('Erro ao buscar trailers:', error);
+                    return null;
+                }
+            }
+
+            // Função para exibir resultados
+            async function displayResults(items, type) {
+                resultsDiv.innerHTML = '';
+                if (items.length === 0) {
+                    resultsDiv.innerHTML = '<p class="has-text-white">Nenhum resultado encontrado.</p>';
+                    return;
+                }
+                for (const item of items) {
+                    const trailer = await fetchTrailers(item.id, type);
+                    const trailerUrl = trailer ? `https://www.youtube.com/watch?v=${trailer.key}` : '';
+
+                    const itemDiv = document.createElement('div');
+                    itemDiv.classList.add('box');
+                    const videoUrl = `https://fembedder.com/e/${item.id}-dub`;
+                    itemDiv.innerHTML = `
+                        <article class="media">
+                            <div class="media-left">
+                                <figure class="image">
+                                    <img src="https://image.tmdb.org/t/p/w200${item.poster_path}" alt="${item.title || item.name}">
+                                    <div class="play-icon" onclick="window.open('${videoUrl}', '_blank')">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24">
+                                            <path d="M8 5v14l11-7z"></path>
+                                        </svg>
+                                    </div>
+                                    ${trailerUrl ? `<div class="trailer-icon" onclick="window.open('${trailerUrl}', '_blank')"><i class="fas fa-film"></i></div>` : ''}
+                                </figure>
+                            </div>
+                            <div class="media-content">
+                                <h3 class="title">${(item.title || item.name).toUpperCase()}</h3>
+                                <p class="info">Data de lançamento: ${formatDate(item.release_date || item.first_air_date)}<br>Média de avaliação: ${item.vote_average}</p>
+                                <p class="description">${item.overview}</p>
+                                <div class="expand-toggle">
+                                    <span class="show-more"><i class="fas fa-chevron-down"></i></span>
+                                    <span class="show-less" style="display:none;"><i class="fas fa-chevron-up"></i></span>
+                                </div>
+                            </div>
+                        </article>
+                    `;
+                    const description = itemDiv.querySelector('.description');
+                    const showMore = itemDiv.querySelector('.show-more');
+                    const showLess = itemDiv.querySelector('.show-less');
+
+                    showMore.addEventListener('click', () => {
+                        description.classList.add('expanded');
+                    });
+
+                    showLess.addEventListener('click', () => {
+                        description.classList.remove('expanded');
+                    });
+
+                    resultsDiv.appendChild(itemDiv);
+                }
+            }
+
+            // Adicionar event listeners para os itens do menu
+            document.querySelectorAll('.navbar-dropdown .navbar-item').forEach(item => {
+                item.addEventListener('click', (event) => {
+                    const category = event.currentTarget.getAttribute('data-category');
+                    const type = event.currentTarget.getAttribute('data-type');
+                    fetchAndDisplayResults(type, category);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
